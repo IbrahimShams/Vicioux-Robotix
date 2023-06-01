@@ -12,17 +12,82 @@ YELLOW=(255,255,0)
 WHITE=(255,255,255)
 myClock=time.Clock()
 running=True
-counter=0
+lava_counter=0
 block=image.load("block1.png")
 rect_list=[]
 omx,omy=0,0
-lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert_alpha() for i in range(6)]
-playerImgs=[image.load(f"player/player ({i+1}).png") for i in range(21)]
+lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
+player=image.load("player/tile000.png")
+player=transform.scale(player, (100,100))
+"""Idle (2 frames)
+Blink (variation to idle, 2 frames)
+Walk (4 frames)
+Run (8 frames)
+Kneel/Duck (6 frames)
+Jump (8 frames)
+Teleport/disappear (4 frames)
+Die (8 frames)
+Attack (8 frames)
+To Do:
+- idle + blink
+- jump
+- run
+- attack
+"""
+# def addPics(name,start,end):
+#     mypics=[]
+#     for i in range(start,end+1):
+#         mypics.append(image.load(f"images/{name}{i:03}.png"))
+#     return mypics
+
+# def drawScene(player,picList):
+#     screen.fill(WHITE)
+#     row=player[2]
+#     col=int(player[3])
+#     pic=picList[row][col]
+#     screen.blit(pic,(player[0],player[1]))
+#     display.flip()
+
+# def movePlayer(player):
+#     '''
+#     this function changes the x and y location of the player
+#     It also adjusts the ROW and the COLUMN values in the list
+#     so that we can show the correct picture
+#     '''
+#     if keys[K_RIGHT]:
+#         player[0]+=2
+#         player[2]=0#0 right
+#     elif keys[K_LEFT]:
+#         player[0]-=2
+#         player[2]=3#3 left
+#     elif keys[K_UP]:
+#         player[1]-=2
+#         player[2]=2#2 up
+#     elif keys[K_DOWN]:
+#         player[1]+=2
+#         player[2]=1#1 down
+#     else:
+#         player[3]=0
+
+#     player[3]=player[3]+0.2
+#     if player[3]>=6:
+#         player[3]=1
+
+     #x    y  row col
+# mc=[250,150,0 ,0]
+
+# pics=[]
+# pics.append(addPics("Mario",1,6))#right facing pics
+# pics.append(addPics("Mario",7,12))#down facing pics
+# pics.append(addPics("Mario",13,18))#up facing pics
+# pics.append(addPics("Mario",19,24))#leftdown facing pics
+# mario=[250,150,0 ,0]
+
+# print(pics)
+
 for img in lavaImgs:
     img.set_colorkey(BLACK)
 
-player=image.load("player/player (1).png")
-player=transform.scale(player,(300,300))
 def roundIt(num,round_num):
     n=0
     for i in range(0,num+1,round_num):
@@ -74,15 +139,13 @@ def eraseMap(x1,y1,x2,y2,map):
         if eraseRect in rect_list:
             rect_list.remove(eraseRect)
 
-def animate(lst,counter,x,y):
+def animate(lst,counter,speed,x,y):
     screen.blit(lst[int(counter)],(x,y))
-    counter=(counter+0.1)%len(lst)
+    counter=(counter+speed)%len(lst)
     return counter
 
 while running:
     screen.fill(WHITE)
-    screen.blit(player,(0,0))
-
     for evt in event.get():
         if evt.type==QUIT:
             running=False
@@ -98,8 +161,13 @@ while running:
     for rect in rect_list:
         screen.blit(block,rect)
     
+    # drawScene(mc,pics)#pics is the 2D list with all 24 pictures
+    # movePlayer(mc)
+
+    screen.blit(player,(0,0))
+
     draw.rect(screen,(220,70,40),(0,667,1150,30))
-    counter=animate(lavaImgs,counter,0,580)
+    lava_counter=animate(lavaImgs,lava_counter,0.1,0,580)
     print(len(rect_list))
     myClock.tick(60)
     display.flip()
