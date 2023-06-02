@@ -1,3 +1,18 @@
+"""Idle (2 frames)
+Blink (variation to idle, 2 frames)
+Walk (4 frames)
+Run (8 frames)
+Kneel/Duck (6 frames)
+Jump (8 frames)
+Teleport/disappear (4 frames)
+Die (8 frames)
+Attack (8 frames)
+To Do:
+- idle + blink
+- jump
+- run
+- attack
+"""
 from pygame import *
 from math import *
 
@@ -14,76 +29,57 @@ myClock=time.Clock()
 running=True
 lava_counter=0
 block=image.load("block1.png")
-rect_list=[]
+rect_list=[Rect(0,450,50,50)]
 omx,omy=0,0
 lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
-player=image.load("player/tile000.png")
-player=transform.scale(player, (100,100))
-"""Idle (2 frames)
-Blink (variation to idle, 2 frames)
-Walk (4 frames)
-Run (8 frames)
-Kneel/Duck (6 frames)
-Jump (8 frames)
-Teleport/disappear (4 frames)
-Die (8 frames)
-Attack (8 frames)
-To Do:
-- idle + blink
-- jump
-- run
-- attack
-"""
-# def addPics(name,start,end):
-#     mypics=[]
-#     for i in range(start,end+1):
-#         mypics.append(image.load(f"images/{name}{i:03}.png"))
-#     return mypics
+lava_background=Rect(0,667,1150,30)
+# gravity=3
+# jumpPower=-45
 
-# def drawScene(player,picList):
+# X,Y,W,H=0,1,2,3
+
+# def drawScene():
 #     screen.fill(WHITE)
-#     row=player[2]
-#     col=int(player[3])
-#     pic=picList[row][col]
-#     screen.blit(pic,(player[0],player[1]))
+#     draw.rect(screen,RED,p)
+#     for plat in rect_list:
+#         screen.blit(block,plat)
 #     display.flip()
 
-# def movePlayer(player):
-#     '''
-#     this function changes the x and y location of the player
-#     It also adjusts the ROW and the COLUMN values in the list
-#     so that we can show the correct picture
-#     '''
-#     if keys[K_RIGHT]:
-#         player[0]+=2
-#         player[2]=0#0 right
-#     elif keys[K_LEFT]:
-#         player[0]-=2
-#         player[2]=3#3 left
-#     elif keys[K_UP]:
-#         player[1]-=2
-#         player[2]=2#2 up
-#     elif keys[K_DOWN]:
-#         player[1]+=2
-#         player[2]=1#1 down
-#     else:
-#         player[3]=0
+# def movePlayer(p):
+#     keys=key.get_pressed()
+#     if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
+#         v[Y]=jumpPower
 
-#     player[3]=player[3]+0.2
-#     if player[3]>=6:
-#         player[3]=1
+#     v[X]=0
+#     if keys[K_LEFT]:
+#         v[X]=-10
+#     elif keys[K_RIGHT]:
+#         v[X]=10
+  
+#     p[X]+=v[X] #horizontal movement
+#     v[Y]+=gravity
 
-     #x    y  row col
-# mc=[250,150,0 ,0]
+# def check(p):
+#     #we will first check if the player lands on
+#     #one of the platforms
+#     for plat in rect_list:
+#                                                         #   current position         next frame position
+#         if p[X]+p[W]>plat[X] and p[X]<plat[X]+plat[W] and p[Y]+p[H]<=plat[Y] and p[Y]+p[H]+v[Y]>=plat[Y]:
+#             v[Y]=0#stop falling down
+#             v[2]=plat[Y]
+#             p[Y]=plat[Y]-p[H]
 
-# pics=[]
-# pics.append(addPics("Mario",1,6))#right facing pics
-# pics.append(addPics("Mario",7,12))#down facing pics
-# pics.append(addPics("Mario",13,18))#up facing pics
-# pics.append(addPics("Mario",19,24))#leftdown facing pics
-# mario=[250,150,0 ,0]
+#     p[Y]+=v[Y]#vertical movement
 
-# print(pics)
+#     # if p[Y]+p[H]>=600:
+#     #     v[Y]=0
+#     #     p[Y]=600-p[H]
+#     #     v[2]=600
+
+# #hor ver height
+# v=[0,0, 600]
+
+# p=Rect(0,250,50,50)
 
 for img in lavaImgs:
     img.set_colorkey(BLACK)
@@ -136,8 +132,8 @@ def eraseMap(x1,y1,x2,y2,map):
         map=gaps(x1,y1,x2,y2,map,"erase")
     else:
         eraseRect=Rect(x2,y2,50,50)
-        if eraseRect in rect_list:
-            rect_list.remove(eraseRect)
+        if eraseRect in map:
+            map.remove(eraseRect)
 
 def animate(lst,counter,speed,x,y):
     screen.blit(lst[int(counter)],(x,y))
@@ -157,18 +153,15 @@ while running:
         drawMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
     elif mb[2]:
         eraseMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
-
-    for rect in rect_list:
-        screen.blit(block,rect)
     
-    # drawScene(mc,pics)#pics is the 2D list with all 24 pictures
-    # movePlayer(mc)
-
-    screen.blit(player,(0,0))
-
-    draw.rect(screen,(220,70,40),(0,667,1150,30))
+    # drawScene()
+    draw.rect(screen,(220,70,40),lava_background)
     lava_counter=animate(lavaImgs,lava_counter,0.1,0,580)
-    print(len(rect_list))
+    for rect in rect_list:
+         screen.blit(block,rect)
+    # movePlayer(p)
+    # check(p)
+    #print(len(rect_list))
     myClock.tick(60)
     display.flip()
     omx,omy=mx,my
