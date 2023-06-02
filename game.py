@@ -54,15 +54,14 @@ def drawScene():
     screen.blit(player,(0,0))
     display.flip()
 
-def movePlayer(p):
+def movePlayer(p,dJump):
     keys=key.get_pressed()
     if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
         v[Y]=jumpPower
-        doubleJump=True
-    
-    elif doubleJump:
+        dJump=True
+    elif keys[K_SPACE] and dJump:
         v[Y]=jumpPower
-        doubleJump=False
+        dJump=False
 
     v[X]=0
     if keys[K_LEFT]:
@@ -71,7 +70,7 @@ def movePlayer(p):
         v[X]=7
   
     p[X]+=v[X]
-    if v[Y]<=25:
+    if v[Y]<=10:
         v[Y]+=gravity
 
 def check(p):
@@ -166,7 +165,7 @@ while running:
         eraseMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
     
     drawScene()
-    movePlayer(p)
+    doubleJump=movePlayer(p,doubleJump)
     check(p)
     print(len(rect_list))
     myClock.tick(60)
