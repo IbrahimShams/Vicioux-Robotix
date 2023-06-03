@@ -34,39 +34,47 @@ rect_list=[Rect(0,450,50,50)]
 omx,omy=0,0
 lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
 lava_background=Rect(0,667,1150,30)
-player=image.load("player/tile000.png")
-player=transform.scale(player,(100,100))
+player=image.load("player/tile000.png").convert_alpha()
+player=transform.scale(player,(50,50))
 
-gravity=2
-jumpPower=-25
+gravity=0.01
+jumpPower=-10
 
 X,Y,W,H=0,1,2,3
 
+#hor ver
+v=[0,0,697]
+p=Rect(0,250,50,50)
+
 def drawScene():
-    global lava_counter
     screen.fill(WHITE)
     draw.rect(screen,RED,p)
+    screen.blit(player,p)
     for plat in rect_list:
         screen.blit(block,plat)
-    draw.rect(screen,(220,70,40),lava_background)
-    lava_counter=animate(lavaImgs,lava_counter,0.1,0,580)
-    screen.blit(player,(0,0))
-    display.flip()
 
-def movePlayer(p):
+def hitWalls(x,y,walls):
+    playerRect=Rect(x,y,50,50)
+    return playerRect.collidelist(walls)
+
+def movePlayer(p,gravity):
     keys=key.get_pressed()
+    v[X]=0
     if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
         v[Y]=jumpPower
-
-    v[X]=0
-    if keys[K_LEFT]:
-        v[X]=-7
-    elif keys[K_RIGHT]:
-        v[X]=7
-  
+        gravity=0.01
+    if v[Y]<0 and hitWalls(p[X],p[Y],rect_list)!=-1:
+        v[Y]=-gravity
+    if keys[K_a] and hitWalls(p[X]-5,p[Y],rect_list)==-1:
+        v[X]=-5
+    if keys[K_d] and hitWalls(p[X]+5,p[Y],rect_list)==-1:
+        v[X]=5
+    
     p[X]+=v[X]
-    if v[Y]<=10:
+    if v[Y]<=8:
         v[Y]+=gravity
+        gravity+=0.05
+    return gravity
 
 def check(p):
     for plat in rect_list:                                            #   current position         next frame position
@@ -75,17 +83,12 @@ def check(p):
             v[2]=plat[Y]
             p[Y]=plat[Y]-p[H]
 
-    p[Y]+=v[Y]#vertical movement
+    p[Y]+=int(v[Y])#vertical movement
 
     # if p[Y]+p[H]>=600:
     #     v[Y]=0
     #     p[Y]=600-p[H]
     #     v[2]=600
-
-#hor ver
-v=[0,0,697]
-
-p=Rect(0,250,50,50)
 
 for img in lavaImgs:
     img.set_colorkey(BLACK)
@@ -160,10 +163,13 @@ while running:
         eraseMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
     
     drawScene()
-    movePlayer(p)
+    draw.rect(screen,(220,70,40),lava_background)
+    lava_counter=animate(lavaImgs,lava_counter,0.1,0,580)
+    gravity=movePlayer(p,gravity)
+    print(gravity)
     check(p)
     print(len(rect_list))
     myClock.tick(60)
-    display.flip()
+    display.update()
     omx,omy=mx,my
 quit()
