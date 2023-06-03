@@ -71,7 +71,7 @@ def movePlayer(p,gravity):
         v[X]=5
     
     p[X]+=v[X]
-    if v[Y]<=8:
+    if v[Y]<=15:
         v[Y]+=gravity
         gravity+=0.05
     return gravity

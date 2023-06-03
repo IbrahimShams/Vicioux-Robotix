@@ -9,50 +9,85 @@ BLUE=(0,0,255)
 GREEN=(0,255,0)
 YELLOW=(255,255,0)
 WHITE=(255,255,255)
-myClock=time.Clock()
-
-player=Rect(250,250,25,25)
-
-walls=[Rect(50,100,200,80),Rect(300,250,100,50),Rect(390,470,50,100),Rect(460,70,50,40)]
 
 
-def drawScene(player,walls):
+gravity=3
+jumpPower=-45
+
+X=0
+Y=1
+W=2
+H=3
+
+def drawScene(p,plats):
     screen.fill(BLACK)
-    draw.rect(screen,GREEN,player)
-    for w in walls:
-        draw.rect(screen,RED,w)
+    draw.rect(screen,RED,p)
+    for plat in plats:
+        draw.rect(screen,GREEN,plat)
     display.flip()
 
-def movePlayer(player):
+def move(p):
     keys=key.get_pressed()
-    if keys[K_DOWN] and hitWalls(player[0],player[1]+5,walls)==-1:
-        player[1]+=5
-    elif keys[K_UP] and hitWalls(player[0],player[1]-5,walls)==-1:
-        player[1]-=5
-    if keys[K_RIGHT] and hitWalls(player[0]+5,player[1],walls)==-1:
-        player[0]+=5
-    elif keys[K_LEFT] and hitWalls(player[0]-5,player[1],walls)==-1:
-        player[0]-=5
 
-def hitWalls(x,y,walls):
-    playerRect=Rect(x,y,25,25)
-    return playerRect.collidelist(walls)
-    #-1 if not colliding (0 or more if colliding)
+    if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
+        v[Y]=jumpPower
 
+    v[X]=0
+    if keys[K_LEFT]:
+        v[X]=-5
+    elif keys[K_RIGHT]:
+        v[X]=5
+  
+    p[X]+=v[X] #horizontal movement
+    v[Y]+=gravity
 
+def check(p,plats):
+    '''
+    check(p) - checks if the player is touching the ground
+    or lands on a platform
+    '''
+
+    #we will first check if the player lands on
+    #one of the platforms
+    for plat in plats:
+                                                        #   current position         next frame position
+        if p[X]+p[W]>plat[X] and p[X]<plat[X]+plat[W] and p[Y]+p[H]<=plat[Y] and p[Y]+p[H]+v[Y]>=plat[Y]:
+            v[Y]=0#stop falling down
+            v[2]=plat[Y]
+            p[Y]=plat[Y]-p[H]
+
+    p[Y]+=v[Y]#vertical movement
+
+    if p[Y]+p[H]>=600:
+        v[Y]=0
+        p[Y]=600-p[H]
+        v[2]=600
+
+ 
+        
+    
+
+#hor ver height
+v=[0,0, 600]
+
+myClock=time.Clock()
 running=True
+    #   X  Y  W  H
+p=Rect(300,60,40,70)
+    #   0  1  2  3
+
+plats=[Rect(500,480,70,20),Rect(600,460,70,20),Rect(200,470,50,10)]
 
 while running:
     for evt in event.get():
         if evt.type==QUIT:
             running=False
-                       
-    mx,my=mouse.get_pos()
-    mb=mouse.get_pressed()
 
-    drawScene(player,walls)
-    movePlayer(player)
+    drawScene(p,plats)
+    move(p)
+    check(p,plats)
+    print(v)
     myClock.tick(60)
-   
+    
             
 quit()
