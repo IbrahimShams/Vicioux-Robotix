@@ -9,84 +9,83 @@ BLUE=(0,0,255)
 GREEN=(0,255,0)
 YELLOW=(255,255,0)
 WHITE=(255,255,255)
+myClock=time.Clock()
 
+def addPics(name,start,end):
+    mypics=[]
+    for i in range(start,end+1):
+        mypics.append(image.load(f"images/{name}{i:03}.png"))
 
-gravity=3
-jumpPower=-45
-
-X=0
-Y=1
-W=2
-H=3
-
-def drawScene(p,plats):
-    screen.fill(BLACK)
-    draw.rect(screen,RED,p)
-    for plat in plats:
-        draw.rect(screen,GREEN,plat)
-    display.flip()
-
-def move(p):
-    keys=key.get_pressed()
-
-    if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
-        v[Y]=jumpPower
-
-    v[X]=0
-    if keys[K_LEFT]:
-        v[X]=-5
-    elif keys[K_RIGHT]:
-        v[X]=5
-  
-    p[X]+=v[X] #horizontal movement
-    v[Y]+=gravity
-
-def check(p,plats):
-    '''
-    check(p) - checks if the player is touching the ground
-    or lands on a platform
-    '''
-
-    #we will first check if the player lands on
-    #one of the platforms
-    for plat in plats:
-                                                        #   current position         next frame position
-        if p[X]+p[W]>plat[X] and p[X]<plat[X]+plat[W] and p[Y]+p[H]<=plat[Y] and p[Y]+p[H]+v[Y]>=plat[Y]:
-            v[Y]=0#stop falling down
-            v[2]=plat[Y]
-            p[Y]=plat[Y]-p[H]
-
-    p[Y]+=v[Y]#vertical movement
-
-    if p[Y]+p[H]>=600:
-        v[Y]=0
-        p[Y]=600-p[H]
-        v[2]=600
-
- 
-        
+    return mypics
     
 
-#hor ver height
-v=[0,0, 600]
+def drawScene(player,picList):
+    '''
+    this function draws 1 of the 24 pictures from the 2D list
+    '''
+    screen.fill(GREEN)
+    row=player[2]
+    col=int(player[3])
+    pic=picList[row][col]
+    screen.blit(pic,(player[0],player[1]))
+    display.flip()
 
-myClock=time.Clock()
+
+def movePlayer(player):
+    '''
+    this function changes the x and y location of the player
+    It also adjusts the ROW and the COLUMN values in the list
+    so that we can show the correct picture
+    '''
+    if keys[K_RIGHT]:
+        player[0]+=2
+        player[2]=0#0 right
+    elif keys[K_LEFT]:
+        player[0]-=2
+        player[2]=3#3 left
+    elif keys[K_UP]:
+        player[1]-=2
+        player[2]=2#2 up
+    elif keys[K_DOWN]:
+        player[1]+=2
+        player[2]=1#1 down
+    else:
+        player[3]=0
+
+    player[3]=player[3]+0.2
+    if player[3]>=6:
+        player[3]=1
+
+        
+
+     #x    y  row col
+mario=[250,150,0 ,0]
+       #0  1   2  3
+
+pics=[]
+pics.append(addPics("Mario",1,6))#right facing pics
+pics.append(addPics("Mario",7,12))#down facing pics
+pics.append(addPics("Mario",13,18))#up facing pics
+pics.append(addPics("Mario",19,24))#leftdown facing pics
+
+
+print(pics)
+
+
 running=True
-    #   X  Y  W  H
-p=Rect(300,60,40,70)
-    #   0  1  2  3
-
-plats=[Rect(500,480,70,20),Rect(600,460,70,20),Rect(200,470,50,10)]
 
 while running:
     for evt in event.get():
         if evt.type==QUIT:
             running=False
+                       
+    mx,my=mouse.get_pos()
+    mb=mouse.get_pressed()
+    keys=key.get_pressed()
 
-    drawScene(p,plats)
-    move(p)
-    check(p,plats)
-    print(v)
+    drawScene(mario,pics)#pics is the 2D list with all 24 pictures
+    movePlayer(mario)
+    
     myClock.tick(60)
     
             

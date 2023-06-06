@@ -37,19 +37,37 @@ lava_background=Rect(0,667,1150,30)
 player=image.load("player/tile000.png").convert_alpha()
 player=transform.scale(player,(50,50))
 
-gravity=0.01
-jumpPower=-10
+jumpPower=-5
+move_list=[0.01,"no jump"]
+grav,dJump=0,1
 
 X,Y,W,H=0,1,2,3
 
 #hor ver
 v=[0,0,697]
 p=Rect(0,250,50,50)
+p_list=[0,0]
+
+def addPics(name,start,end):
+    mypics=[]
+    for i in range(start,end+1):
+        mypics.append(image.load(f"player/{name}{i:03}.png"))
+    return mypics
+
+pics=[]
+pics.append(addPics("tile",0,1))#idle right
+# pics.append(addPics("Mario",7,12))#down facing pics
+# pics.append(addPics("Mario",13,18))#up facing pics
+# pics.append(addPics("Mario",19,24))#leftdown facing pics
 
 def drawScene():
     screen.fill(WHITE)
     draw.rect(screen,RED,p)
     screen.blit(player,p)
+    row=p_list[0]
+    col=int(p_list[1])
+    pic=pics[row][col]
+    screen.blit(pic,p)
     for plat in rect_list:
         screen.blit(block,plat)
 
@@ -57,24 +75,31 @@ def hitWalls(x,y,walls):
     playerRect=Rect(x,y,50,50)
     return playerRect.collidelist(walls)
 
-def movePlayer(p,gravity):
+def movePlayer(p,move_list):
     keys=key.get_pressed()
     v[X]=0
-    if keys[K_SPACE] and p[Y]+p[H]==v[2] and v[Y]==0:
+    if keys[K_w] and p[Y]+p[H]==v[2] and v[Y]==0:
         v[Y]=jumpPower
-        gravity=0.01
+        move_list[grav]=0.01
+        move_list[dJump]="first jump"
+    if not keys[K_w] and move_list[dJump]=="first jump":
+        move_list[dJump]="double jump available"
+    if move_list[dJump]=="double jump available" and keys[K_w]:
+        v[Y]=jumpPower
+        move_list[grav]=0.01
+        move_list[dJump]="no jump"
     if v[Y]<0 and hitWalls(p[X],p[Y],rect_list)!=-1:
-        v[Y]=-gravity
-    if keys[K_a] and hitWalls(p[X]-5,p[Y],rect_list)==-1:
-        v[X]=-5
-    if keys[K_d] and hitWalls(p[X]+5,p[Y],rect_list)==-1:
-        v[X]=5
+        v[Y]=-move_list[grav]
+    if keys[K_a] and hitWalls(p[X]-3,p[Y],rect_list)==-1:
+        v[X]=-3
+    if keys[K_d] and hitWalls(p[X]+3,p[Y],rect_list)==-1:
+        v[X]=3
     
+    p_list[1]=(p_list[1]+0.08)%2
     p[X]+=v[X]
     if v[Y]<=15:
-        v[Y]+=gravity
-        gravity+=0.05
-    return gravity
+        v[Y]+=move_list[grav]
+        move_list[grav]+=0.01
 
 def check(p):
     for plat in rect_list:                                            #   current position         next frame position
@@ -165,10 +190,8 @@ while running:
     drawScene()
     draw.rect(screen,(220,70,40),lava_background)
     lava_counter=animate(lavaImgs,lava_counter,0.1,0,580)
-    gravity=movePlayer(p,gravity)
-    print(gravity)
+    movePlayer(p,move_list)
     check(p)
-    print(len(rect_list))
     myClock.tick(60)
     display.update()
     omx,omy=mx,my
