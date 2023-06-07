@@ -34,36 +34,48 @@ rect_list=[Rect(0,450,50,50)]
 omx,omy=0,0
 lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
 lava_background=Rect(0,667,1150,30)
-player=image.load("player/tile000.png").convert_alpha()
-player=transform.scale(player,(50,50))
 
 jumpPower=-5
-move_list=[0.01,"no jump"]
-grav,dJump=0,1
+move_list=[0.01,"no jump","right",0.07,"idle"]
+grav,dJump,facing,img_speed,action=0,1,2,3,4
 
 X,Y,W,H=0,1,2,3
 
 #hor ver
 v=[0,0,697]
-p=Rect(0,250,50,50)
+p=Rect(0,250,75,75)
 p_list=[0,0]
+
+def flipPics(lst):
+    flip_lst=[]
+    for image in lst:
+        flip_lst.append(transform.flip(image,True,False))
+    return flip_lst
 
 def addPics(name,start,end):
     mypics=[]
-    for i in range(start,end+1):
-        mypics.append(image.load(f"player/{name}{i:03}.png"))
+    for i in range(start,end):
+        img=image.load(f"player/{name}{i:03}.png")
+        img=transform.scale(img,(75,75))
+        mypics.append(img)
     return mypics
 
 pics=[]
-pics.append(addPics("tile",0,1))#idle right
+pics.append(addPics("tile",0,5)) #idle right
+pics.append(flipPics(pics[0])) #idle left
+pics.append(addPics("tile",24,31)) #walking right
+pics.append(flipPics(pics[2])) #walking left
+pics.append(addPics("tile",40,47)) #jumping right
+pics.append(flipPics(pics[4])) #jumping left
+
+print(pics)
 # pics.append(addPics("Mario",7,12))#down facing pics
 # pics.append(addPics("Mario",13,18))#up facing pics
 # pics.append(addPics("Mario",19,24))#leftdown facing pics
 
 def drawScene():
     screen.fill(WHITE)
-    draw.rect(screen,RED,p)
-    screen.blit(player,p)
+    #draw.rect(screen,RED,p)
     row=p_list[0]
     col=int(p_list[1])
     pic=pics[row][col]
@@ -77,30 +89,66 @@ def hitWalls(x,y,walls):
 
 def movePlayer(p,move_list):
     keys=key.get_pressed()
+    #move_list[action]="idle"
     v[X]=0
+    move_list[img_speed]=0.07
+    if move_list[facing]=="right":
+        p_list[0]=0
+    else:
+        p_list[0]=1
+    if keys[K_a] and hitWalls(p[X]-3,p[Y],rect_list)==-1:
+        v[X]=-3
+        p_list[0]=3
+        move_list[facing]="left"
+        move_list[img_speed]=0.15
+        #move_list[action]="walking"
+    if keys[K_d] and hitWalls(p[X]+3,p[Y],rect_list)==-1:
+        v[X]=3
+        p_list[0]=2
+        move_list[facing]="right"
+        move_list[img_speed]=0.15
+        #move_list[action]="walking"
     if keys[K_w] and p[Y]+p[H]==v[2] and v[Y]==0:
-        v[Y]=jumpPower
-        move_list[grav]=0.01
-        move_list[dJump]="first jump"
+            v[Y]=jumpPower
+            move_list[grav]=0.01
+            move_list[dJump]="first jump"
+            #move_list[action]="jumping"
     if not keys[K_w] and move_list[dJump]=="first jump":
         move_list[dJump]="double jump available"
     if move_list[dJump]=="double jump available" and keys[K_w]:
         v[Y]=jumpPower
         move_list[grav]=0.01
         move_list[dJump]="no jump"
+        #move_list[action]="jumping"
+    if v[Y]<0: ###########################################################PROBLEM
+        move_list[img_speed]=0.1
+        if move_list[facing]=="right":
+            p_list[0]=4
+        else:
+            p_list[0]=5
+        if p_list[1] <= len(pics[p_list[0]]):
+            p_list[1]=p_list[1]+move_list[img_speed]
+        else:
+            p_list[0]=0
+            #p_list[0]-=4
+            #p_list[1]=0
+    else:
+        p_list[1]=(p_list[1]+move_list[img_speed])%len(pics[p_list[0]])
+
     if v[Y]<0 and hitWalls(p[X],p[Y],rect_list)!=-1:
         v[Y]=-move_list[grav]
-    if keys[K_a] and hitWalls(p[X]-3,p[Y],rect_list)==-1:
-        v[X]=-3
-    if keys[K_d] and hitWalls(p[X]+3,p[Y],rect_list)==-1:
-        v[X]=3
     
-    p_list[1]=(p_list[1]+0.08)%2
+    #if move_list[facing]=="right":
+        #p_list[0]=0
+    #else:
+        #p_list[0]=1
+    
+
     p[X]+=v[X]
-    if v[Y]<=15:
+    if v[Y]<=10:
         v[Y]+=move_list[grav]
         move_list[grav]+=0.01
-
+    print(p_list[0])
 def check(p):
     for plat in rect_list:                                            #   current position         next frame position
         if p[X]+p[W]>plat[X] and p[X]<plat[X]+plat[W] and p[Y]+p[H]<=plat[Y] and p[Y]+p[H]+v[Y]>=plat[Y]:
