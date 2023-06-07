@@ -35,9 +35,10 @@ omx,omy=0,0
 lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
 lava_background=Rect(0,667,1150,30)
 
-jumpPower=-5
-move_list=[0.01,"no jump","right",0.07,"idle"]
-grav,dJump,facing,img_speed,action=0,1,2,3,4
+jumpPower=-7
+move_list=["no jump","right",0.07]
+dJump,facing,img_speed=0,1,2
+gravity=0.3
 
 X,Y,W,H=0,1,2,3
 
@@ -68,14 +69,9 @@ pics.append(flipPics(pics[2])) #walking left
 pics.append(addPics("tile",40,47)) #jumping right
 pics.append(flipPics(pics[4])) #jumping left
 
-print(pics)
-# pics.append(addPics("Mario",7,12))#down facing pics
-# pics.append(addPics("Mario",13,18))#up facing pics
-# pics.append(addPics("Mario",19,24))#leftdown facing pics
-
 def drawScene():
     screen.fill(WHITE)
-    #draw.rect(screen,RED,p)
+    draw.rect(screen,RED,p,1)
     row=p_list[0]
     col=int(p_list[1])
     pic=pics[row][col]
@@ -84,12 +80,11 @@ def drawScene():
         screen.blit(block,plat)
 
 def hitWalls(x,y,walls):
-    playerRect=Rect(x,y,50,50)
+    playerRect=Rect(x,y,75,75)
     return playerRect.collidelist(walls)
 
 def movePlayer(p,move_list):
     keys=key.get_pressed()
-    #move_list[action]="idle"
     v[X]=0
     move_list[img_speed]=0.07
     if move_list[facing]=="right":
@@ -98,57 +93,44 @@ def movePlayer(p,move_list):
         p_list[0]=1
     if keys[K_a] and hitWalls(p[X]-3,p[Y],rect_list)==-1:
         v[X]=-3
-        p_list[0]=3
+        if v[Y]==0:
+            p_list[0]=3
         move_list[facing]="left"
         move_list[img_speed]=0.15
-        #move_list[action]="walking"
+
     if keys[K_d] and hitWalls(p[X]+3,p[Y],rect_list)==-1:
         v[X]=3
-        p_list[0]=2
+        if v[Y]==0:
+            p_list[0]=2
         move_list[facing]="right"
         move_list[img_speed]=0.15
-        #move_list[action]="walking"
+
     if keys[K_w] and p[Y]+p[H]==v[2] and v[Y]==0:
             v[Y]=jumpPower
-            move_list[grav]=0.01
             move_list[dJump]="first jump"
-            #move_list[action]="jumping"
+
     if not keys[K_w] and move_list[dJump]=="first jump":
         move_list[dJump]="double jump available"
     if move_list[dJump]=="double jump available" and keys[K_w]:
         v[Y]=jumpPower
-        move_list[grav]=0.01
         move_list[dJump]="no jump"
-        #move_list[action]="jumping"
-    if v[Y]<0: ###########################################################PROBLEM
-        move_list[img_speed]=0.1
+    if v[Y]==jumpPower:
+        p_list[1]=0
+    if v[Y]<0:
+        if hitWalls(p[X],p[Y]+v[Y],rect_list)!=-1:
+            v[Y]=0
+        move_list[img_speed]=0.15
         if move_list[facing]=="right":
             p_list[0]=4
         else:
             p_list[0]=5
-        if p_list[1] <= len(pics[p_list[0]]):
-            p_list[1]=p_list[1]+move_list[img_speed]
-        else:
-            p_list[0]=0
-            #p_list[0]-=4
-            #p_list[1]=0
-    else:
-        p_list[1]=(p_list[1]+move_list[img_speed])%len(pics[p_list[0]])
 
-    if v[Y]<0 and hitWalls(p[X],p[Y],rect_list)!=-1:
-        v[Y]=-move_list[grav]
-    
-    #if move_list[facing]=="right":
-        #p_list[0]=0
-    #else:
-        #p_list[0]=1
-    
+    p_list[1]=(p_list[1]+move_list[img_speed])%len(pics[p_list[0]])
 
     p[X]+=v[X]
-    if v[Y]<=10:
-        v[Y]+=move_list[grav]
-        move_list[grav]+=0.01
-    print(p_list[0])
+    if v[Y]<=100:
+        v[Y]+=gravity
+
 def check(p):
     for plat in rect_list:                                            #   current position         next frame position
         if p[X]+p[W]>plat[X] and p[X]<plat[X]+plat[W] and p[Y]+p[H]<=plat[Y] and p[Y]+p[H]+v[Y]>=plat[Y]:
