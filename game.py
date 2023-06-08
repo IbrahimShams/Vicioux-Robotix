@@ -18,7 +18,7 @@ block=image.load("block1.png")
 rect_list=[Rect(0,450,50,50)]
 omx,omy=0,0
 lavaImgs=[image.load("lava/lava00"+f"{i}"+".png").convert() for i in range(6)]
-lava_background=Rect(0,667,1150,30)
+lava_background=Rect(0,597,1150,100)
 
 jumpPower=-7
 move_list=["no jump","right",0.07]
@@ -30,6 +30,8 @@ X,Y,W,H=0,1,2,3
 v=[0,0,697]
 p=Rect(0,375,75,75)
 p_list=[0,0]
+
+objects=[lava_background,p]
 
 def flipPics(lst):
     flip_lst=[]
@@ -139,7 +141,8 @@ def roundIt(num,round_num):
             n=i
     return n
 
-def gaps(x1,y1,x2,y2,lst,action):
+def gaps(x1,y1,x2,y2,map,action):
+    gap=[]
     dst=sqrt((x2-x1)**2+(y2-y1)**2)
     dx,dy=x2-x1,y2-y1
     if abs(dx)>=abs(dy):
@@ -155,8 +158,9 @@ def gaps(x1,y1,x2,y2,lst,action):
             dotX+=dx_increase
             dotY+=dy_increase
             gapfillRect=Rect(roundIt(int(dotX),50),roundIt(int(dotY),50),50,50)
-            if gapfillRect not in lst:
-                lst.append(gapfillRect)
+            if gapfillRect not in map:
+                gap.append(gapfillRect)
+        return gap
     elif action=="erase":
         for i in range(num_squares):
             dotX=omx+dx_increase*i
@@ -164,16 +168,22 @@ def gaps(x1,y1,x2,y2,lst,action):
             gaperaseRect=Rect(roundIt(int(dotX),50),roundIt(int(dotY),50),50,50)
             if gaperaseRect in rect_list:
                 rect_list.remove(gaperaseRect)
-    return lst
+        return map
+
+def cleanMap(map):
+    for block in map:
+        if block.collidelist(objects)!=-1:
+            map.remove(block)
 
 def drawMap(x1,y1,x2,y2,map):
-    if y2<600 and y1<600:
-        if abs(x1-x2)>50 or abs(y1-y2)>50:
-            map=gaps(x1,y1,x2,y2,map,"fill")
-        else:
-            drawRect=Rect(x2,y2,50,50)
-            if drawRect not in map:
-                map.append(drawRect)
+    if abs(x1-x2)>50 or abs(y1-y2)>50:
+        for block in gaps(x1,y1,x2,y2,map,"fill"):
+            map.append(block)
+    else:
+        drawRect=Rect(x2,y2,50,50)
+        if drawRect not in map:
+            map.append(drawRect)
+    cleanMap(map)
 
 def eraseMap(x1,y1,x2,y2,map):
     if abs(x1-x2)>50 or abs(y1-y2)>50:
@@ -210,4 +220,3 @@ while running:
     display.update()
     omx,omy=mx,my
 quit()
-print(counter)
