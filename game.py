@@ -22,7 +22,7 @@ lava_background=Rect(0,597,1150,100)
 
 jumpPower=-7
 move_list=["no jump","right",0.07]
-dJump,facing,img_speed=0,1,2
+dJump,facing,img_speed=0,1,2,
 gravity=0.3
 X,Y,W,H=0,1,2,3
 
@@ -54,6 +54,8 @@ pics.append(addPics("tile",24,31)) #walking right
 pics.append(flipPics(pics[2])) #walking left
 pics.append(addPics("tile",40,47)) #jumping right
 pics.append(flipPics(pics[4])) #jumping left
+pics.append(addPics("tile",64,71)) #attack right
+pics.append(flipPics(pics[6])) #attack left
 
 def drawScene():
     screen.fill(WHITE)
@@ -110,7 +112,11 @@ def movePlayer(p,move_list):
             p_list[0]=4
         else:
             p_list[0]=5
-
+    #if keys[K_LSHIFT]:
+        #if mx>p[0]+37:
+            #move_list[atk_ctr]=animate(pics[6],move_list[atk_ctr],0.1,p[0],p[1])
+        #else:
+            #move_list[atk_ctr]=animate(pics[6],move_list[atk_ctr],0.1,p[0],p[1])
     p_list[1]=(p_list[1]+move_list[img_speed])%len(pics[p_list[0]])
 
     p[X]+=v[X]
@@ -205,9 +211,10 @@ while running:
 
     mx,my=mouse.get_pos()
     mb=mouse.get_pressed()
-
+    
     if mb[0]:
         drawMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
+    
     elif mb[2]:
         eraseMap(roundIt(omx,50),roundIt(omy,50),roundIt(mx,50),roundIt(my,50),rect_list)
     
