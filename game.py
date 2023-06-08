@@ -30,7 +30,6 @@ X,Y,W,H=0,1,2,3
 v=[0,0,697]
 p=Rect(0,375,75,75)
 p_list=[0,0]
-
 objects=[lava_background,p]
 
 def flipPics(lst):
@@ -58,7 +57,7 @@ pics.append(addPics("tile",64,71)) #attack right
 pics.append(flipPics(pics[6])) #attack left
 
 def drawScene():
-    screen.fill(WHITE)
+    screen.fill(BLUE)
     draw.rect(screen,RED,p,1)
     row=p_list[0]
     col=int(p_list[1])
@@ -81,21 +80,21 @@ def movePlayer(p,move_list):
         p_list[0]=1
     if keys[K_a] and hitWalls(p[X]-5,p[Y],rect_list)==-1:
         v[X]=-5
+        move_list[facing]="left"
         if v[Y]==0:
             p_list[0]=3
-        move_list[facing]="left"
-        move_list[img_speed]=0.15
+            move_list[img_speed]=0.15
 
     if keys[K_d] and hitWalls(p[X]+5,p[Y],rect_list)==-1:
         v[X]=5
+        move_list[facing]="right"
         if v[Y]==0:
             p_list[0]=2
-        move_list[facing]="right"
-        move_list[img_speed]=0.15
+            move_list[img_speed]=0.15
 
     if keys[K_w] and p[Y]+p[H]==v[2] and v[Y]==0:
-            v[Y]=jumpPower
-            move_list[dJump]="first jump"
+        v[Y]=jumpPower
+        move_list[dJump]="first jump"
 
     if not keys[K_w] and move_list[dJump]=="first jump":
         move_list[dJump]="double jump available"
@@ -112,11 +111,12 @@ def movePlayer(p,move_list):
             p_list[0]=4
         else:
             p_list[0]=5
-    #if keys[K_LSHIFT]:
-        #if mx>p[0]+37:
-            #move_list[atk_ctr]=animate(pics[6],move_list[atk_ctr],0.1,p[0],p[1])
-        #else:
-            #move_list[atk_ctr]=animate(pics[6],move_list[atk_ctr],0.1,p[0],p[1])
+    if keys[K_LSHIFT]:
+        move_list[img_speed]=0.2
+        if move_list[facing]=="right":
+            p_list[0]=6
+        else:
+            p_list[0]=7
     p_list[1]=(p_list[1]+move_list[img_speed])%len(pics[p_list[0]])
 
     p[X]+=v[X]
@@ -201,8 +201,7 @@ def eraseMap(x1,y1,x2,y2,map):
 
 def animate(lst,counter,speed,x,y):
     screen.blit(lst[int(counter)],(x,y))
-    counter=(counter+speed)%len(lst)
-    return counter
+    return (counter+speed)%len(lst)
 
 while running:
     for evt in event.get():
