@@ -135,6 +135,8 @@ def check(p):
         if timer<180:
             timer+=1
             v[Y]=0
+        else:
+            p[Y]+=int(v[Y])
     else:
         p[Y]+=int(v[Y])
 
